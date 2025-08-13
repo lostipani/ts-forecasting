@@ -1,6 +1,9 @@
 import logging
 
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+from .utils import rearrage_datetime_first, pop_datetime
 
 logger = logging.getLogger()
 
@@ -16,11 +19,8 @@ def to_datetime(df: pd.DataFrame, column: str) -> pd.DataFrame:
         logger.error("column missing in provided df")
         return df
     df.drop(columns=[column], inplace=True)
-    return df[["datetime"] + [col for col in df.columns if col != "datetime"]]
-
-
-def inspect_null(df: pd.DataFrame):
-    print(df.isnull().sum() / df.shape[0] * 100)
+    df = rearrage_datetime_first(df)
+    return df.reset_index(drop=True)
 
 
 def try_drop_shared_nulls(df: pd.DataFrame, any_null=False) -> pd.DataFrame:
@@ -32,7 +32,19 @@ def try_drop_shared_nulls(df: pd.DataFrame, any_null=False) -> pd.DataFrame:
     df.dropna(axis=0, how="all", inplace=True)
     if any_null and any(df.isnull().sum() > 0):
         df.dropna(axis=0, how="any", inplace=True)
-    return df
+    return df.reset_index(drop=True)
+
+
+def drop_full_nulls(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop column with only nulls.
+    """
+    all_nulls = df.isnull().sum() / df.shape[0] == 1
+    return df.drop(
+        all_nulls[all_nulls].index.to_list(),
+        axis=1,
+        inplace=False,
+    ).reset_index(drop=True)
 
 
 def drop_full_zero(df: pd.DataFrame) -> pd.DataFrame:
@@ -40,8 +52,20 @@ def drop_full_zero(df: pd.DataFrame) -> pd.DataFrame:
     Drop column with only zeros.
     """
     df = df.copy(deep=True)
-    datetime = df["datetime"]
-    df = df[df.columns[~df.columns.isin(["datetime"])]]
+    datetime, df = pop_datetime(df)
     df = df.loc[:, (df != 0).any(axis=0)]
     df["datetime"] = datetime
-    return df[["datetime"] + [col for col in df.columns if col != "datetime"]]
+    df = rearrage_datetime_first(df)
+    return df.reset_index(drop=True)
+
+
+def normalize(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Gauss normalization.
+    """
+    datetime, df_no_datetime = pop_datetime(df)
+    df_vals_norm = StandardScaler().fit_transform(X=df_no_datetime.values)
+    df_norm = pd.DataFrame(df_vals_norm, columns=df_no_datetime.columns)
+    df_norm["datetime"] = datetime
+    df = rearrage_datetime_first(df_norm)
+    return df.reset_index(drop=True)
