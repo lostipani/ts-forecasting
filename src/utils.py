@@ -11,8 +11,8 @@ def pop_datetime(df: pd.DataFrame) -> Tuple[pd.Series, pd.DataFrame]:
     return df.datetime, df[df.columns[~df.columns.isin(["datetime"])]]
 
 
-def inspect_null(df: pd.DataFrame):
-    print(df.isnull().sum() / df.shape[0] * 100)
+def inspect_nulls(df: pd.DataFrame) -> pd.Series:
+    return df.isnull().sum() / df.shape[0] * 100
 
 
 def inspect_std_iqr(df: pd.DataFrame) -> pd.DataFrame:
