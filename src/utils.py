@@ -8,7 +8,10 @@ def rearrage_datetime_first(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def pop_datetime(df: pd.DataFrame) -> Tuple[pd.Series, pd.DataFrame]:
-    return df.datetime, df[df.columns[~df.columns.isin(["datetime"])]]
+    return (
+        df.get("datetime", None),
+        df[df.columns[~df.columns.isin(["datetime"])]],
+    )
 
 
 def inspect_nulls(df: pd.DataFrame) -> pd.Series:

@@ -59,23 +59,6 @@ def drop_full_zero(df: pd.DataFrame) -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def interpolate(df: pd.DataFrame, method: str) -> pd.DataFrame:
-    df = df.copy()
-    if method == "time":
-
-        df.set_index(keys="datetime", inplace=True)
-        df.interpolate(method="time", inplace=True)
-        datetime = df.index.to_series()
-        df.reset_index(inplace=True)
-        df["datetime"] = datetime
-        df = rearrage_datetime_first(df)
-    else:
-        raise NotImplemented
-    if any(inspect_nulls(df) > 0):
-        logger.warning("not all rows have been imputed")
-    return df
-
-
 def normalize(df: pd.DataFrame) -> pd.DataFrame:
     """
     Gauss normalization.
