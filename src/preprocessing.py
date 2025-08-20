@@ -57,15 +57,3 @@ def drop_full_zero(df: pd.DataFrame) -> pd.DataFrame:
     df["datetime"] = datetime
     df = rearrage_datetime_first(df)
     return df.reset_index(drop=True)
-
-
-def normalize(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Gauss normalization.
-    """
-    datetime, df_no_datetime = pop_datetime(df)
-    df_vals_norm = StandardScaler().fit_transform(X=df_no_datetime.values)
-    df_norm = pd.DataFrame(df_vals_norm, columns=df_no_datetime.columns)
-    df_norm["datetime"] = datetime
-    df = rearrage_datetime_first(df_norm)
-    return df.reset_index(drop=True)
